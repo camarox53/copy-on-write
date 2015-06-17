@@ -1,0 +1,21 @@
+#! /bin/bash
+# COmmand to do the Initial clone on the VM: VBoxManage clonehd ~/VirtualBox\ VMs/minimal.deb.local/minimal.deb.local.vdi ~/base.vdi
+zenity --question --title "VirtualBox" --text="Would you like to remove your current VirtualBox and install a new one? Answering no will result in your previous Virtualbox opening." 
+
+if [[ $? == [0] ]]
+then
+    echo Removing ${USER} Virtual Machine
+
+    VBoxManage unregistervm "${USER}" --delete
+    VBoxManage createvm --name "${USER}" --ostype Debian_64 --register
+    VBoxManage modifyvm "${USER}" --nic1 nat --memory 2048 --vram 100 --usb on
+    VBoxManage storagectl "${USER}" --name "sata1" --add sata
+    VBoxManage storageattach "${USER}" --storagectl "sata1" --port 0 --device 0 --type hdd --medium /srv/vbox/loudbase_1.vdi --mtype multiattach
+    VBoxManage sharedfolder add "${USER}" --name "${USER}" --hostpath "/home/${USER}" --automount
+    VBoxManage sharedfolder add "${USER}" --name "${USER}_usb" --hostpath "/media/${USER}" --automount
+    
+    virtualbox --startvm ${USER}&
+
+else 
+    virtualbox --startvm ${USER}&
+fi
